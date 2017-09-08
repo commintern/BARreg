@@ -1,0 +1,165 @@
+arma::vec updatefun_c(arma::mat X, arma::vec Y, double lambda, arma::vec beta0){
+  arma::mat Gammat = diagmat(beta0);
+  arma::mat Xmat = X * Gammat;
+  arma::mat res = Gammat * inv(Xmat.t() * Xmat + lambda * eye(size(Gammat))) * Xmat.t() * Y;
+  return(res);
+}
+
+arma::mat upfunhigh_c(arma::mat X, arma::vec B, int p, int r, double lambda, arma::vec weight){
+  arma::mat xga = mat(r,p);
+  xga = X * diagmat(weight);
+  arma::mat M= xga * xga.t();
+  M.diag() = M.diag() + lambda;
+  arma::mat M1= xga.t() * inv_sympd(M) * xga;
+  arma::mat M2 = mat(p,p);
+  double dd;
+  for(int i=0;i<p;i++){
+    for(int j=0;j<=i;j++){
+      if(j==i){
+        dd=1;
+      } else {
+        dd=0;
+      }
+      M2(i,j) = weight(i)*weight(j)*(dd-M1(i,j));
+      M2(j,i) = M2(i,j);
+    }
+  }
+  arma::vec res = M2 * B /lambda;
+  return(res);
+}
+
+// R version
+// updatefun <- function(X,Y,lambda,beta0)
+// {
+//   Gammat <- diag(c(beta0))
+//   Xmat <- X %*% Gammat
+//   Gammat %*% solve(t(Xmat) %*% Xmat + lambda * diag(rep(1,length(beta0)))) %*% t(Xmat) %*% Y
+//   
+// }
+/////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+// [[Rcpp::export]]
+arma::vec barrep_c(arma::mat X, arma::vec Y, double lambda, arma::vec betao, double abstol){
+  int p = X.n_cols;
+  int n = X.n_rows;
+  arma::vec beta1;
+  arma::vec beta0 = betao;
+  int iter = 0;
+  if (p < n ){
+    do
+    {
+      beta1 = updatefun_c(X,Y,lambda,beta0);
+      iter++;
+      for(int i=0; i < betao.n_elem; i++){
+        if(fabs(beta1(i))<1e-20){
+          beta1(i) = 0;
+        }
+      }
+      if(max(abs(beta1-beta0))<abstol){
+        break;
+      } else {
+        beta0 = beta1;
+      }
+    } while((iter<1000));
+  } else {
+    arma::vec B = X.t() * Y;
+    do
+    {
+      beta1 = upfunhigh_c(X, B, p, n, lambda, beta0);
+      iter++;
+      for(int i=0; i < betao.n_elem; i++){
+        if(fabs(beta1(i))<1e-20){
+          beta1(i) = 0;
+        }
+      }
+      if(max(abs(beta1-beta0))<abstol){
+        break;
+      } else {
+        beta0 = beta1;
+      }
+    } while((iter<10000));
+  }
+  
+  //cout << "The iteration time is " << iter << endl;
+  if(iter>=10000) cout << lambda << ": " << "Matrix update fails to converge" << endl;
+  return(beta1);
+}
+
+rma::vec barrepcon_c(arma::mat X, arma::vec B, double lambda, arma::vec betao, double abstol){
+  int p = X.n_cols;
+  int n = X.n_rows;
+  arma::vec beta1;
+  arma::vec beta0 = betao;
+    do
+    {
+      beta1 = upfunhigh_c(X, B, p, n, lambda, beta0);
+      iter++;
+      for(int i=0; i < betao.n_elem; i++){
+        if(fabs(beta1(i))<1e-20){
+          beta1(i) = 0;
+        }
+      }
+      if(max(abs(beta1-beta0))<abstol){
+        break;
+      } else {
+        beta0 = beta1;
+      }
+    } while((iter<10000));
+  
+  //cout << "The iteration time is " << iter << endl;
+  if(iter>=10000) cout << lambda << ": " << "Matrix update fails to converge" << endl;
+  return(beta1);
+}
+
+
+// iterative Coordinate descent
+// [[Rcpp::export]]
+arma::vec itercd_c(arma::mat X, arma::vec Y, int p, int n, double lambda, arma::vec bo, double abstol){
+  arma::vec b1= vec(p);
+  arma::vec b0= bo;
+  arma::mat A = X.t() * X; 
+  
+  double maxchange = 0.0;
+  //arma::vec z = vec(p);
+  arma::vec r = Y - X * b0;
+  int iter = 0;
+  do
+  {
+    maxchange =0;
+    for(int j=0; j < p; j++){
+      //z(j) = as_scalar(dot(X.col(j) , r))  +  n* b0(j); 
+      //b1(j) = z(j)*pow(b0(j),2)/(n*pow(b0(j),2)+lambda);
+      //b1(j) = z(j)/(n+lambda/pow(b0(j),2));
+      b1(j) = (as_scalar(dot(X.col(j) , r))  +  A(j,j)* b0(j))*pow(b0(j),2)/(A(j,j)*pow(b0(j),2)+lambda);
+      r = r - (b1(j)-b0(j)) * X.col(j);
+      if(abs(b1(j))<1e-20){
+        b1(j) = 0;
+      }
+      if(abs(b1(j)-b0(j))>maxchange){ 
+        maxchange = fabs(b1(j)-b0(j));
+      }
+    }
+    if(maxchange < abstol){
+      break;
+    } else {
+      b0 = b1;
+      iter++;
+    }
+    
+  } while((iter<100000));
+  if(iter==100000) cout << "Iterative Coordinate fails to converge" << endl;
+  //cout << "The iteration time is " << iter << endl;
+  return(b1);
+}
+
+
+
+// [[Rcpp::export]]
+arma::mat barlseq_c(arma::mat X, arma::vec Y, arma::vec lambdav, arma::vec betao, double abstol, int if_hd){
+  arma::mat res= arma::mat(X.n_cols,lambdav.n_elem);
+  for (std::size_t i=0; i < lambdav.n_elem; i++){
+    res.col(i) = barrep_c(X, Y, lambdav(i), betao, abstol);
+  }
+  return(res);
+}
