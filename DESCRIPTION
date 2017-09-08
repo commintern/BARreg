@@ -4,12 +4,12 @@ Title: Borken Adaptive Ridge Regression for recurrent events
 Version: 0.02
 Date: 2017-03-29
 Author: Dayu Sun
-Maintainer: Dayu Sun <yourfault@somewhere.net>
-Description: Borken Adaptive Ridge Regression for recurrent events
+Maintainer: Dayu Sun <dsryb@mail.missouri.edu>
+Description: Borken Adaptive Ridge Regression
 License: GPL (>=2)
 Imports: Rcpp (>= 0.12.9),
   ncvreg,
   RcppArmadillo
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: glmnet
-Depends: ncvreg
+Depends: ncvreg, Rcpp, RcppArmadillo
