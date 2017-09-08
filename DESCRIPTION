@@ -12,4 +12,4 @@ Imports: Rcpp (>= 0.12.9),
   RcppArmadillo
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: glmnet
-Depends: ncvreg, Rcpp, RcppArmadillo
+Depends: Rcpp, RcppArmadillo
