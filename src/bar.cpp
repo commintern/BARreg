@@ -76,10 +76,10 @@ arma::vec barrdgH_c(arma::mat X, arma::mat A, arma::vec B, double lambda, arma::
         beta0 = beta1;
         
     }
-  } while((iter<10000));
+  } while((iter<3000));
   
   //cout << "The iteration time is " << iter << endl;
-  if(iter>=10000) cout << iter << ": " << "Ridge update fails to converge" << endl;
+  if(iter>=3000) cout << iter << ": " << "Ridge update fails to converge" << endl;
   *totiter = iter;
   return(beta1);
 }
@@ -112,11 +112,11 @@ arma::vec barrdgL_c(arma::mat A, arma::vec B, double lambda, arma::vec betao, do
       } else {
         beta0 = beta1;
       }
-    } while((iter<10000));
+    } while((iter<3000));
   
   
   //cout << "The iteration time is " << iter << endl;
-  if(iter>=10000) cout << iter << ": " << "Ridge update fails to converge" << endl;
+  if(iter>=3000) cout << iter << ": " << "Ridge update fails to converge" << endl;
   *totiter = iter;
   return(beta1);
 }
@@ -157,7 +157,7 @@ List barridge_c(arma::mat A, arma::vec B, int n, int p, arma::vec xiv, arma::vec
         totaliter(current_index) = iter;
         xil(0,current_index) = xiv(i);
         xil(1,current_index) = lambdav(j);
-        if(iter>=10000) cout << i*lambdav.n_elem+j << ": " << "Ridge update fails to converge" << endl;
+        if(iter>=3000) cout << i*lambdav.n_elem+j << ": " << "Ridge update fails to converge" << endl;
       }
     }
   } else {
@@ -173,7 +173,7 @@ List barridge_c(arma::mat A, arma::vec B, int n, int p, arma::vec xiv, arma::vec
         totaliter(current_index) = iter;
         xil(0,current_index) = xiv(i);
         xil(1,current_index) = lambdav(j);
-        if(iter>=10000) cout << i*lambdav.n_elem+j << ": " << "Matrix update fails to converge" << endl;
+        if(iter>=3000) cout << i*lambdav.n_elem+j << ": " << "Matrix update fails to converge" << endl;
       }
     }
     
@@ -220,8 +220,8 @@ arma::vec barcdint_c(arma::mat A, arma::vec B, double lambda, arma::vec beta0, d
       iter++;
     }
     
-  } while((iter<100000));
-  if(iter==100000) cout << "Iterative Coordinate fails to converge" << endl;
+  } while((iter<3000));
+  if(iter==3000) cout << "Iterative Coordinate fails to converge" << endl;
   *totiter = iter;
   return(b1);
 }
@@ -246,7 +246,7 @@ List barcd_c(arma::mat A, arma::vec B, int n, int p, arma::vec xiv, arma::vec la
         totaliter(current_index) = iter;
         xil(0,current_index) = xiv(i);
         xil(1,current_index) = lambdav(j);
-        if(iter>=10000) cout << i*lambdav.n_elem+j << ": " << "CD update fails to converge" << endl;
+        if(iter>=3000) cout << i*lambdav.n_elem+j << ": " << "CD update fails to converge" << endl;
       }
     }
   

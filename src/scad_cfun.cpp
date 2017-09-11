@@ -132,8 +132,8 @@ arma::vec elnetint_c(arma::mat A, arma::vec B, double lambda, arma::vec betao, a
       actset =find(abs(b0)>0);
       iter++;
     } 
-  }while((iter<10000));
-  if(iter==10000) cout << "ELNET fails to converge" << endl;
+  }while((iter<3000));
+  if(iter==3000) cout << "ELNET fails to converge" << endl;
   *totiter = iter;
   return(b1);
 }
@@ -201,8 +201,8 @@ arma::vec scadint_c(arma::mat A, arma::vec B, double lambda, arma::vec betao, do
       //actset.t().raw_print(cout,"=======Final actset: ");
       iter++;
     }
-  }while((iter<1000));
-  if(iter==1000) cout <<  "SCAD fails to converge" << endl;
+  }while((iter<3000));
+  if(iter==3000) cout <<  "SCAD fails to converge" << endl;
   *totiter = iter;
   return(b1);
 }
